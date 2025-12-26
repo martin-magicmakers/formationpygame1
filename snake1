@@ -1,0 +1,92 @@
+import pygame, sys
+from pygame.locals import QUIT
+import random
+import os
+
+
+pygame.init()
+pygame.mixer.init()
+
+largeur = 800
+hauteur = 600
+
+fenetre = pygame.display.set_mode((largeur, hauteur))
+
+pygame.display.set_caption("Snake V1")
+
+fenetre.fill("#298CCC")
+
+FPS = 60
+
+cellule = 20
+nb_cellules_x = largeur // cellule
+nb_cellules_y = hauteur // cellule
+
+haut = (0, -1)
+bas = (0, 1)
+gauche = (-1, 0)
+droite = (1, 0)
+
+horloge = pygame.time.Clock()
+
+typo = pygame.font.Font(None, 50)
+
+son_miam = pygame.mixer.Sound(os.path.join("miam.wav"))
+son_bubu = pygame.mixer.Sound(os.path.join("bubu.mp3"))
+
+def depart_serpent():
+    snake = [(9,5), (8,5), (7,5)]
+    direction = droite
+    son_bubu.play()
+    miam = (random.randint(0, nb_cellules_x - 1), random.randint(0, nb_cellules_y - 1))
+
+    while True:
+
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP and direction !=bas:
+                    direction = haut
+                elif event.key == pygame.K_DOWN and direction !=haut:
+                    direction = bas
+                elif event.key == pygame.K_LEFT and direction !=droite:
+                    direction = gauche
+                elif event.key == pygame.K_RIGHT and direction !=gauche:
+                    direction = droite
+        
+        deplacement = snake[0]
+        x = deplacement[0] + direction[0]
+        y = deplacement[1] + direction[1]
+
+        snake.insert(0, (x, y))
+
+        if (x < 0 or x >= nb_cellules_x) or (y < 0 or y >= nb_cellules_y) or snake.count((x, y)) > 1:
+            texte_surface = typo.render("Game over :(", True, "red")
+            fenetre.blit(texte_surface, (0,0))
+            pygame.display.update()
+            pygame.time.wait(7000)
+            pygame.quit()
+            sys.exit()
+
+
+
+        if (x, y) == miam:
+            miam = (random.randint(0, nb_cellules_x - 1), random.randint(0, nb_cellules_y - 1))
+            son_miam.play()
+        else:
+            snake.pop()
+    
+        fenetre.fill("#298CCC")
+        pygame.draw.rect(fenetre, "pink", (miam[0] * cellule, miam[1] * cellule, cellule, cellule))
+        for segment in snake:
+            pygame.draw.rect(fenetre, "orange", (segment[0] * cellule, segment[1] * cellule, cellule, cellule))
+            
+
+       
+        pygame.display.update()
+        horloge.tick(5)
+                     
+depart_serpent()
